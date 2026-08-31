@@ -180,7 +180,8 @@
       transition:width 0.1s ease-out;
     }
     .wordmark { position:relative; }
-    .bm-mark { cursor:pointer; }
+    .bm-mark { cursor:pointer; padding:8px; margin:-8px; border-radius:4px; }
+    @media (hover:none) { .bm-mark { padding:12px; margin:-12px; } }
 
     /* Synergy gauge */
     .synergy-gauge {
@@ -239,6 +240,8 @@
     #gameLives { color:var(--teal); letter-spacing:4px; font-size:15px; }
     #gameScore { margin-left:auto; color:var(--white); font-size:20px; letter-spacing:1px; font-weight:bold; }
     .game-legend { background:var(--panel); border-bottom:2px solid var(--rule); padding:8px 28px; display:flex; align-items:center; gap:28px; font-family:var(--font-mono); font-size:13px; color:var(--white); letter-spacing:0.5px; overflow:hidden; font-weight:bold; }
+    .legend-full { display:inline; }
+    .legend-short { display:none; }
     .legend-item { display:flex; align-items:center; gap:8px; white-space:nowrap; }
     .legend-icon { display:inline-block; vertical-align:middle; }
     .game-border-left,.game-border-right { display:none; position:fixed; top:0; bottom:0; width:18px; z-index:201; background:var(--surface); pointer-events:none; }
@@ -273,7 +276,9 @@
       .graph-info { display:none; }
       .footer { padding:24px; flex-direction:column; gap:16px; align-items:flex-start; }
       .who-panel { padding:28px 24px; }
-      .game-legend { font-size:11px; gap:16px; padding:8px 16px; }
+      .game-legend { font-size:11px; gap:10px; padding:6px 12px; overflow:hidden; }
+      .legend-full { display:none; }
+      .legend-short { display:inline; }
     }
   </style>
 </head>
@@ -374,10 +379,10 @@
     <span id="gameScore">$0</span>
   </div>
   <div class="game-legend" id="gameLegend">
-    <span class="legend-item"><canvas class="legend-icon" id="lcal" width="40" height="36"></canvas><span id="lcalText">Meetings avoided ×0</span></span>
-    <span class="legend-item"><canvas class="legend-icon" id="lcrt" width="52" height="36"></canvas><span id="lcrtText">Work delegated ×0</span></span>
-    <span class="legend-item"><canvas class="legend-icon" id="lbeer" width="40" height="36"></canvas><span id="lbeerText">After-work drinks expensed ×0</span></span>
-    <span class="legend-item"><canvas class="legend-icon" id="lcash" width="40" height="36"></canvas><span id="lcashText">Annual bonuses collected ×0</span></span>
+    <span class="legend-item"><canvas class="legend-icon" id="lcal" width="40" height="36"></canvas><span id="lcalText"><span class="legend-full">Meetings avoided </span><span class="legend-short">Meetings </span>×0</span></span>
+    <span class="legend-item"><canvas class="legend-icon" id="lcrt" width="52" height="36"></canvas><span id="lcrtText"><span class="legend-full">Work delegated </span><span class="legend-short">Work </span>×0</span></span>
+    <span class="legend-item"><canvas class="legend-icon" id="lbeer" width="40" height="36"></canvas><span id="lbeerText"><span class="legend-full">After-work drinks expensed </span><span class="legend-short">Drinks </span>×0</span></span>
+    <span class="legend-item"><canvas class="legend-icon" id="lcash" width="40" height="36"></canvas><span id="lcashText"><span class="legend-full">Annual bonuses collected </span><span class="legend-short">Bonus </span>×0</span></span>
   </div>
 </div>
 <div class="game-border-left" id="borderL"></div>
@@ -970,10 +975,14 @@ function showBonusFlash(){
 }
 
 function updateLegend(){
-  document.getElementById('lcalText').textContent='Meetings avoided \xd7'+(kills.calendar||0);
-  document.getElementById('lcrtText').textContent='Work delegated \xd7'+(kills.crt||0);
-  document.getElementById('lbeerText').textContent='After-work drinks expensed \xd7'+(kills.beer||0);
-  document.getElementById('lcashText').textContent='Annual bonuses collected \xd7'+(kills.cash||0);
+  function setCount(id,full,short,n){
+    var el=document.getElementById(id); if(!el)return;
+    el.innerHTML='<span class="legend-full">'+full+' </span><span class="legend-short">'+short+' </span>\xd7'+n;
+  }
+  setCount('lcalText','Meetings avoided','Meetings',kills.calendar||0);
+  setCount('lcrtText','Work delegated','Work',kills.crt||0);
+  setCount('lbeerText','After-work drinks expensed','Drinks',kills.beer||0);
+  setCount('lcashText','Annual bonuses collected','Bonus',kills.cash||0);
 }
 
 function jump(){if(coyote>0){salVY=-14;onGround=false;coyote=0;}}
