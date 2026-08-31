@@ -180,8 +180,8 @@
       transition:width 0.1s ease-out;
     }
     .wordmark { position:relative; }
-    .bm-mark { cursor:pointer; padding:8px; margin:-8px; border-radius:4px; }
-    @media (hover:none) { .bm-mark { padding:12px; margin:-12px; } }
+    .bm-mark { cursor:pointer; }
+    .bm-mark-wrap { display:inline-flex; align-items:center; padding:10px; margin:-10px; cursor:pointer; }
 
     /* Synergy gauge */
     .synergy-gauge {
@@ -295,14 +295,14 @@
 <div class="corporate">
   <div class="hero">
     <div class="wordmark">
-      <svg class="bm-mark" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <span class="bm-mark-wrap" id="bmMarkWrap"><svg class="bm-mark" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle fill="white" cx="337" cy="337" r="175"/>
         <circle fill="white" cx="337" cy="687" r="175"/>
         <path fill="white" d="M337,162h0v700h0c-96.59,0-175-78.41-175-175v-350c0-96.59,78.41-175,175-175Z"/>
         <circle fill="white" cx="687" cy="687" r="175"/>
         <circle fill="white" cx="687" cy="337" r="175"/>
         <path fill="white" d="M862,162h0v700h0c-96.59,0-175-78.41-175-175v-350c0-96.59,78.41-175,175-175Z" transform="translate(1549 1024) rotate(-180)"/>
-      </svg>
+      </svg></span>
       <span class="wordmark-dot"></span>BURNMEETR
       <div class="synergy-meter-wrap" id="synergyMeter">
         <div class="synergy-meter-bar" id="synergyMeterBar"></div>
@@ -1111,7 +1111,7 @@ function returnToPage(){
 
 // ── Synergy gauge on BM mark ─────────────────────────────────────────────
 var gaugeTaps=0, gaugeTimer=null, gaugeFull=false;
-var bmMark=document.querySelector('.bm-mark');
+var bmMark=document.getElementById('bmMarkWrap')||document.querySelector('.bm-mark');
 var synergyGauge=document.getElementById('synergyGauge');
 var gaugeFill=document.getElementById('gaugeFill');
 var gaugePct=document.getElementById('gaugePct');
