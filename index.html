@@ -276,9 +276,13 @@
       .graph-info { display:none; }
       .footer { padding:24px; flex-direction:column; gap:16px; align-items:flex-start; }
       .who-panel { padding:28px 24px; }
-      .game-legend { font-size:11px; gap:10px; padding:6px 12px; overflow:hidden; }
+      .game-legend { 
+        font-size:11px; gap:6px 12px; padding:6px 12px; 
+        flex-wrap:wrap; overflow:visible;
+      }
       .legend-full { display:none; }
       .legend-short { display:inline; }
+      .legend-item { flex: 0 0 calc(50% - 12px); }
     }
   </style>
 </head>
@@ -620,7 +624,7 @@ var gameCanvas=document.getElementById('gameCanvas'),gCtx=gameCanvas.getContext(
 var gameUI=document.getElementById('gameUI'),gameOverEl=document.getElementById('gameOver');
 
 // Game constants
-var BORDER=18, BAR_H=90; // measured from top: game-bar(~44) + legend(~46)
+var BORDER=18, BAR_H=90; // fallback — overridden dynamically in startGame
 var G_AXIS_OFFSET=48; // extra left offset for Y-axis labels
 var SW=10,SH=20,SX=120; // Salaryman size — bigger, starts right of axis
 var ICON_SCALE=3.5, ICON_H=Math.round(18*3.5); // ~63px tall obstacles
@@ -661,6 +665,9 @@ function startGame(){
   gameCanvas.width=window.innerWidth*gDpr; gameCanvas.height=window.innerHeight*gDpr;
   gCtx.setTransform(gDpr,0,0,gDpr,0,0);
   showGame(); gameOverEl.style.display='none';
+  // Measure actual UI height for clip rect
+  var uiEl=document.getElementById('gameUI');
+  if(uiEl) BAR_H=uiEl.offsetHeight||90;
   gameState='playing'; invincible=false;
   gLives=3; gScore=0; gSpeed=3.2; gFrame=0;
   kills={calendar:0,crt:0,beer:0,cash:0};
