@@ -277,12 +277,17 @@
       .footer { padding:24px; flex-direction:column; gap:16px; align-items:flex-start; }
       .who-panel { padding:28px 24px; }
       .game-legend { 
-        font-size:11px; gap:6px 12px; padding:6px 12px; 
+        font-size:11px; gap:4px 0; padding:6px 20px 6px 24px;
         flex-wrap:wrap; overflow:visible;
       }
       .legend-full { display:none; }
       .legend-short { display:inline; }
-      .legend-item { flex: 0 0 calc(50% - 12px); }
+      .legend-item { 
+        flex: 0 0 50%; 
+        display:flex; align-items:center; gap:6px;
+        padding:2px 0;
+      }
+      .legend-icon { flex-shrink:0; width:32px !important; text-align:center; }
     }
   </style>
 </head>
