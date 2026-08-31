@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!--
+
+  ============================================================
+  BURNMEETR — Internal Build 2.4.1
+  Meeting Cost Intelligence Engine (TM)
+  Authorised personnel only.
+  ============================================================
+
+  Status:
+    Cost engine            [OK]
+    Synergy module         [UNRESOLVED — see ticket #447, open since Q3]
+    Decisions metric       [returning null — expected, do not fix]
+    Alignment score        [pending — has been pending since v1.0]
+    Methodology            [proprietary — legal confirmed this does not
+                            need to be verifiable]
+
+  TODO: ask legal if "5x more synergy" requires a benchmark
+  TODO: determine what synergy is, exactly
+  TODO: schedule meeting to discuss the meeting cost tracker
+  TODO: name the game something less cryptic than BURN://RUNNER
+        (update: BURN://RUNNER is correct. do not change.)
+  TODO: cancel meeting (see above)
+
+  ============================================================
+
+  Note from dev:
+
+  It is 11pm. I am still in the office.
+  I was going to look out the window at Mt Fuji
+  but it is dark and I cannot see it.
+
+  I made it in code instead.
+
+  Bad attempt:
+
+            ________
+           /  ~ ~ ~  |
+          /  ~~~~~~~  |
+         / +++++++++++ |
+        / ++++++++++++++ |
+       /++++++++++++++++++ |
+  ____/______________________|____
+  ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+    ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+
+    Actually it looks like this (from Lake Yamanaka, ~2km from here):
+
+                                                                    
+                            .#=====-==#.                            
+                           .#          #.                           
+                          -#            #=                          
+                         *+              +#                         
+                       .%:-*#%   #%#: :**-:%.                       
+                      +@#*+==*++#+==*###=+*#@+                      
+                    -%*=======#*======+*=====*%-                    
+                   *#==========================#*                   
+                 =%+============================+%=                 
+               -%+================================+%-               
+             -@=-========================-==========+%:             
+           -%+============---=======================--=#-           
+         =#*============================================*#=         
+       +#*================================================*#+       
+    .*%*++++++++++++++++++++++++++++++++++++++++++++++++++++*%*.    
+     ..........................................................     
+  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~  ~     
+    ~ . ~ .*%*=======. ~ . ~ ~ . ~ . ~ .=======*%*. ~ . ~ ~       
+      ~ ~ ~ ~ ~*#===# ~ ~ ~ ~ ~ ~ ~ ~ ~ #===#* ~ ~ ~ ~ ~ ~         
+        ~ ~ ~ ~ ~ .#. ~ ~ ~ ~ ~ ~ ~ ~ ~ .#. ~ ~ ~ ~ ~ ~ ~          
+          ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~          
+
+  Productivity: within acceptable parameters.
+  The synergy module remains unresolved.
+
+  ============================================================
+
+-->
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BURNMEETR — Meeting Expenditure Analytics</title>
+  <meta name="description" content="Real-time meeting cost analytics for modern organisations. Every second costs.">
+  <meta property="og:title" content="BURNMEETR — Meeting Expenditure Analytics">
+  <meta property="og:description" content="Real-time meeting cost analytics for modern organisations. Every second costs.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://burnmeetr.com">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="BURNMEETR — Meeting Expenditure Analytics">
+  <meta name="twitter:description" content="Real-time meeting cost analytics for modern organisations. Every second costs.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@1,700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    html { scroll-behavior:smooth; }
+    :root {
+      --black:#000000; --surface:#0A0A0A; --panel:#0D0D0D;
+      --red:#CC2200; --teal:#00AA88; --teal-bright:#00CC99;
+      --white:#F0F0F0; --white65:rgba(240,240,240,0.65);
+      --white50:rgba(240,240,240,0.50); --white28:rgba(240,240,240,0.28);
+      --rule:rgba(255,255,255,0.10);
+      --font-sans:'Helvetica Neue','Arial',sans-serif;
+      --font-serif:'EB Garamond',Georgia,serif;
+      --font-mono:'Courier New',monospace;
+    }
+    body { background:var(--black); color:var(--white); font-family:var(--font-sans); font-weight:700; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+
+    /* ── Ticker ── */
+    .ticker { position:fixed; top:0; left:0; right:0; z-index:100; background:var(--black); border-bottom:1px solid var(--rule); padding:9px 32px; display:flex; align-items:center; gap:24px; font-family:var(--font-mono); font-size:12px; letter-spacing:0.5px; }
+    .ticker-label { color:var(--teal); font-weight:bold; letter-spacing:2px; }
+    .ticker-spacer { flex:1; }
+    .ticker-tagline { color:var(--white65); font-size:12px; letter-spacing:1.5px; }
+
+    /* ── Hero ── */
+    .corporate { padding-top:46px; }
+    .hero { padding:80px 64px 64px; border-bottom:1px solid var(--rule); }
+    .wordmark { font-size:12px; letter-spacing:3px; color:var(--white65); margin-bottom:48px; display:flex; align-items:center; gap:12px; }
+    .wordmark-dot { width:6px; height:6px; border-radius:50%; background:var(--red); flex-shrink:0; }
+    .bm-mark { width:28px; height:28px; flex-shrink:0; }
+    .hero-headline { font-size:clamp(44px,5.5vw,82px); font-weight:700; line-height:1.0; letter-spacing:-2px; color:var(--white); margin-bottom:28px; }
+    .hero-sub { font-size:clamp(16px,1.8vw,21px); font-weight:700; color:var(--white65); line-height:1.5; max-width:580px; margin-bottom:48px; }
+    .store-links { display:flex; gap:12px; flex-wrap:wrap; }
+    .app-link { display:inline-block; border:1px solid var(--teal-bright); color:var(--teal-bright); padding:13px 28px; font-size:13px; letter-spacing:2px; text-decoration:none; font-family:var(--font-mono); transition:background 0.15s,color 0.15s; }
+    .app-link:hover { background:var(--teal-bright); color:var(--black); }
+    .app-link.soon { border-color:var(--white28); color:var(--white28); pointer-events:none; font-size:13px; }
+
+    /* ── Stats ── */
+    .stats { display:grid; grid-template-columns:repeat(5,1fr); border-bottom:1px solid var(--rule); }
+    .stat { padding:36px 48px; border-right:1px solid var(--rule); position:relative; }
+    .stat::before { content:''; position:absolute; left:0; top:20%; bottom:20%; width:2px; background:var(--teal); opacity:0.30; }
+    .stat:last-child { border-right:none; }
+    .stat-number { font-size:clamp(32px,3.5vw,56px); font-weight:700; color:var(--white); letter-spacing:-1.5px; line-height:1; margin-bottom:12px; }
+    .stat-label { font-size:11px; font-weight:700; color:var(--white65); letter-spacing:1.5px; text-transform:uppercase; font-family:var(--font-mono); }
+
+    /* ── Body copy ── */
+    .body-copy { padding:56px 64px; max-width:780px; border-bottom:1px solid var(--rule); }
+    .body-copy p { font-size:clamp(15px,1.5vw,19px); font-weight:700; line-height:1.65; color:var(--white65); margin-bottom:22px; }
+    .body-copy p:last-child { margin-bottom:0; }
+    .synergy-word { font-family:var(--font-serif); font-style:italic; font-weight:700; color:var(--white); cursor:pointer; transition:opacity 0.4s ease; user-select:none; -webkit-user-select:none; }
+
+    /* ── Graph ── */
+    .graph-section { display:grid; grid-template-columns:3fr 1fr; background:var(--surface); border-top:1px solid var(--rule); border-bottom:1px solid var(--rule); }
+    .graph-main { border-right:1px solid var(--rule); overflow:hidden; }
+    .graph-header { padding:16px 24px; display:flex; align-items:baseline; gap:14px; border-bottom:1px solid var(--rule); }
+    .graph-label { font-family:var(--font-mono); font-size:12px; color:var(--teal); letter-spacing:2px; }
+    .graph-sublabel { font-family:var(--font-mono); font-size:11px; color:var(--white65); letter-spacing:0.5px; }
+    .graph-meta { margin-left:auto; font-family:var(--font-mono); font-size:11px; color:var(--white50); letter-spacing:0.5px; }
+    #marketCanvas { display:block; width:100%; height:220px; }
+    .graph-info { padding:16px 20px; display:flex; flex-direction:column; }
+    .info-row { padding:11px 0; border-bottom:1px solid var(--rule); display:flex; flex-direction:column; gap:5px; }
+    .info-row:last-child { border-bottom:none; }
+    .info-label { font-family:var(--font-mono); font-size:10px; color:var(--white50); letter-spacing:1.5px; text-transform:uppercase; }
+    .info-value { font-family:var(--font-mono); font-size:14px; color:var(--white); letter-spacing:0.3px; }
+    .info-value.teal { color:var(--teal); }
+    .info-value.red { color:var(--red); }
+    .info-value.large { font-size:22px; letter-spacing:-0.5px; }
+
+    /* ── Footer ── */
+    .footer { padding:28px 64px; display:flex; align-items:center; justify-content:space-between; border-top:1px solid var(--rule); }
+    .footer-left { font-family:var(--font-mono); font-size:12px; color:var(--white65); letter-spacing:0.5px; }
+    .who-btn { font-family:var(--font-mono); font-size:12px; color:var(--teal-bright); letter-spacing:1px; background:none; border:1px solid var(--teal-bright); padding:8px 16px; cursor:pointer; transition:background 0.15s,color 0.15s; }
+    .who-btn:hover { background:var(--teal-bright); color:var(--black); }
+    .who-panel { display:none; padding:32px 64px; border-top:1px solid var(--rule); background:var(--panel); }
+    .who-panel.open { display:block; }
+    .who-text { font-family:var(--font-mono); font-size:12px; color:var(--white65); line-height:1.8; letter-spacing:0.3px; max-width:560px; margin-bottom:16px; }
+    .who-link { font-family:var(--font-mono); font-size:12px; color:var(--teal-bright); text-decoration:none; letter-spacing:0.5px; }
+    .who-link:hover { text-decoration:underline; }
+
+    /* Synergy meter */
+    .synergy-meter-wrap {
+      position:absolute; bottom:-3px; left:0; right:0;
+      height:2px; overflow:hidden; opacity:0;
+      transition:opacity 0.3s;
+    }
+    .synergy-meter-wrap.active { opacity:1; }
+    .synergy-meter-bar {
+      height:100%; width:0%; background:var(--teal);
+      transition:width 0.1s ease-out;
+    }
+    .wordmark { position:relative; }
+    .bm-mark { cursor:pointer; }
+
+    /* Synergy gauge */
+    .synergy-gauge {
+      margin-bottom:32px;
+      opacity:0;
+      transform:translateY(-6px);
+      transition:opacity 0.4s ease, transform 0.4s ease;
+      pointer-events:none;
+      max-width:380px;
+    }
+    .synergy-gauge.active {
+      opacity:1;
+      transform:translateY(0);
+    }
+    .synergy-gauge-label {
+      font-family:var(--font-mono);
+      font-size:10px;
+      letter-spacing:2px;
+      color:#CC2200;
+      display:flex;
+      justify-content:space-between;
+      margin-bottom:6px;
+    }
+    .synergy-gauge-pct {
+      color:var(--red);
+      font-weight:bold;
+    }
+    .synergy-gauge-track {
+      width:100%;
+      height:12px;
+      border:1px solid rgba(204,34,0,0.7);
+      position:relative;
+      overflow:hidden;
+    }
+    .synergy-gauge-fill {
+      position:absolute;
+      top:0; left:0; bottom:0;
+      width:0%;
+      background:var(--red);
+      transition:width 0.12s ease-out;
+    }
+    .synergy-gauge-status {
+      font-family:var(--font-mono);
+      font-size:10px;
+      color:rgba(240,240,240,0.45);
+      letter-spacing:0.5px;
+      margin-top:6px;
+      height:14px;
+    }
+
+    /* ── Game ── */
+    #gameCanvas { display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:200; background:var(--black); }
+    #gameUI { display:none; position:fixed; top:0; left:0; right:0; z-index:201; pointer-events:none; flex-direction:column; }
+    .game-bar { background:var(--surface); border-bottom:2px solid var(--teal); padding:10px 28px; display:flex; align-items:center; gap:20px; font-family:var(--font-mono); font-size:14px; }
+    #gameTitle { color:var(--teal); letter-spacing:3px; font-size:13px; }
+    #gameLives { color:var(--teal); letter-spacing:4px; font-size:15px; }
+    #gameScore { margin-left:auto; color:var(--white); font-size:20px; letter-spacing:1px; font-weight:bold; }
+    .game-legend { background:var(--panel); border-bottom:2px solid var(--rule); padding:8px 28px; display:flex; align-items:center; gap:28px; font-family:var(--font-mono); font-size:13px; color:var(--white); letter-spacing:0.5px; overflow:hidden; font-weight:bold; }
+    .legend-item { display:flex; align-items:center; gap:8px; white-space:nowrap; }
+    .legend-icon { display:inline-block; vertical-align:middle; }
+    .game-border-left,.game-border-right { display:none; position:fixed; top:0; bottom:0; width:18px; z-index:201; background:var(--surface); pointer-events:none; }
+    .game-border-left { left:0; border-right:2px solid var(--teal); }
+    .game-border-right { right:0; border-left:2px solid var(--teal); }
+    .game-border-bottom { display:none; position:fixed; bottom:0; left:0; right:0; height:16px; z-index:201; background:var(--surface); border-top:2px solid var(--teal); pointer-events:none; }
+    #gameOver { display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:202; background:rgba(0,0,0,0.90); align-items:center; justify-content:center; flex-direction:column; gap:18px; }
+    #gameOverText { font-family:var(--font-mono); font-size:clamp(16px,2.5vw,22px); color:var(--red); letter-spacing:1px; text-align:center; padding:0 32px; font-weight:bold; }
+    #gameOverScore { font-family:var(--font-mono); font-size:15px; color:var(--white65); letter-spacing:1px; }
+    #bonusFlash { display:none; position:fixed; font-family:var(--font-mono); font-size:20px; font-weight:bold; color:var(--teal); letter-spacing:2px; z-index:203; pointer-events:none; text-shadow:0 0 8px rgba(0,170,136,0.6); }
+    #gameSummary { display:none; position:fixed; top:0; left:0; right:0; bottom:0; z-index:202; background:#000; align-items:center; justify-content:center; flex-direction:column; gap:0; padding:60px 48px; }
+    .summary-title { font-family:var(--font-mono); font-size:11px; color:var(--white50); letter-spacing:3px; text-transform:uppercase; margin-bottom:40px; }
+    .summary-row { font-family:var(--font-mono); font-size:16px; color:var(--white); letter-spacing:0.5px; display:flex; justify-content:space-between; width:100%; max-width:480px; padding:10px 0; border-bottom:1px solid var(--rule); opacity:0; transition:opacity 0.4s; }
+    .summary-row.visible { opacity:1; }
+    .summary-row-label { color:var(--white65); }
+    .summary-row-value { color:var(--teal); font-weight:bold; }
+    .summary-score { font-family:var(--font-mono); font-size:clamp(32px,4vw,52px); color:var(--white); letter-spacing:-1px; font-weight:bold; margin-top:32px; opacity:0; transition:opacity 0.4s; }
+    .summary-score.visible { opacity:1; }
+    .summary-score-label { font-family:var(--font-mono); font-size:11px; color:var(--white50); letter-spacing:2px; margin-top:8px; opacity:0; transition:opacity 0.4s; }
+    .summary-score-label.visible { opacity:1; }
+
+    @media (max-width:800px) {
+      .hero { padding:48px 24px 40px; }
+      .stats { grid-template-columns:repeat(2,1fr); }
+      .stat { padding:24px; border-bottom:1px solid var(--rule); }
+      .stat:nth-child(2) { border-right:none; }
+      .stat:nth-child(3) { border-bottom:none; }
+      .stat:nth-child(4) { border-right:none; border-bottom:none; }
+      .stat:nth-child(5) { border-right:none; border-bottom:none; grid-column:span 2; }
+      .body-copy { padding:40px 24px; }
+      .graph-section { grid-template-columns:1fr; }
+      .graph-info { display:none; }
+      .footer { padding:24px; flex-direction:column; gap:16px; align-items:flex-start; }
+      .who-panel { padding:28px 24px; }
+      .game-legend { font-size:11px; gap:16px; padding:8px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="ticker">
+  <span class="ticker-label">MEET:AX</span>
+  <span id="tickerValue" style="color:#F0F0F0">847.3</span>
+  <span id="tickerChange" style="color:#CC2200">▼2.4%</span>
+  <span class="ticker-spacer"></span>
+  <span class="ticker-tagline">EVERY SECOND COSTS</span>
+</div>
+
+<div class="corporate">
+  <div class="hero">
+    <div class="wordmark">
+      <svg class="bm-mark" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle fill="white" cx="337" cy="337" r="175"/>
+        <circle fill="white" cx="337" cy="687" r="175"/>
+        <path fill="white" d="M337,162h0v700h0c-96.59,0-175-78.41-175-175v-350c0-96.59,78.41-175,175-175Z"/>
+        <circle fill="white" cx="687" cy="687" r="175"/>
+        <circle fill="white" cx="687" cy="337" r="175"/>
+        <path fill="white" d="M862,162h0v700h0c-96.59,0-175-78.41-175-175v-350c0-96.59,78.41-175,175-175Z" transform="translate(1549 1024) rotate(-180)"/>
+      </svg>
+      <span class="wordmark-dot"></span>BURNMEETR
+      <div class="synergy-meter-wrap" id="synergyMeter">
+        <div class="synergy-meter-bar" id="synergyMeterBar"></div>
+      </div>
+    </div>
+    <h1 class="hero-headline">Meeting intelligence.<br>Delivered.</h1>
+    <p class="hero-sub">Real-time expenditure analytics for every meeting in your organisation. Know what your time costs before it costs you more.</p>
+    <!-- Synergy gauge — activated by tapping the BM mark -->
+    <div class="synergy-gauge" id="synergyGauge">
+      <div class="synergy-gauge-label">
+        <span>SYNERGY INDEX</span>
+        <span class="synergy-gauge-pct" id="gaugePct">0%</span>
+      </div>
+      <div class="synergy-gauge-track">
+        <div class="synergy-gauge-fill" id="gaugeFill"></div>
+      </div>
+      <div class="synergy-gauge-status" id="gaugeStatus">—</div>
+    </div>
+    <div class="store-links">
+      <a href="https://apps.apple.com" class="app-link" target="_blank" rel="noopener">DOWNLOAD FOR iOS ↗</a>
+      <a href="#" class="app-link soon">ANDROID — COMING SOON</a>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-number">$847</div><div class="stat-label">Average meeting cost</div></div>
+    <div class="stat"><div class="stat-number">0</div><div class="stat-label">Decisions per meeting</div></div>
+    <div class="stat"><div class="stat-number">94%</div><div class="stat-label">Follow-up meetings generated</div></div>
+    <div class="stat"><div class="stat-number">34%</div><div class="stat-label">Attendee utilisation rate</div></div>
+    <div class="stat"><div class="stat-number" id="synergyCount">5×</div><div class="stat-label">More synergy than any competitor app</div></div>
+  </div>
+
+  <div class="body-copy">
+    <p>Burnmeetr provides real-time meeting expenditure analytics for modern organisations. Track cost, duration, and attendance across every session — automatically.</p>
+    <p>Our proprietary methodology surfaces the true cost of organisational <em class="synergy-word" id="synergyWord">synergy</em>, enabling leadership to make data-informed decisions about meeting cadence, attendance, and resource allocation.</p>
+    <p>No accounts. No subscriptions. No data shared. Meeting intelligence, entirely on-device.</p>
+  </div>
+
+  <div class="graph-section">
+    <div class="graph-main">
+      <div class="graph-header">
+        <span class="graph-label">MEET:AX</span>
+        <span class="graph-sublabel">Real-time meeting expenditure index · Updated continuously</span>
+        <span class="graph-meta" id="graphMeta">LIVE</span>
+      </div>
+      <canvas id="marketCanvas"></canvas>
+    </div>
+    <div class="graph-info">
+      <div class="info-row"><div class="info-label">CURRENT</div><div class="info-value large teal" id="infoValue">847.3</div></div>
+      <div class="info-row"><div class="info-label">SESSION HIGH</div><div class="info-value" id="infoHigh">—</div></div>
+      <div class="info-row"><div class="info-label">SESSION LOW</div><div class="info-value" id="infoLow">—</div></div>
+      <div class="info-row"><div class="info-label">VOLUME</div><div class="info-value">847 sessions</div></div>
+      <div class="info-row"><div class="info-label">DECISIONS</div><div class="info-value red">0</div></div>
+      <div class="info-row"><div class="info-label">FOLLOW-UP PROB.</div><div class="info-value">94%</div></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-left">© 2026 Burnmeetr · All synergies reserved. · <a href="/privacy.html" style="color:rgba(240,240,240,0.50);text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.10)">Privacy</a></div>
+    <button class="who-btn" id="whoBtn" onclick="toggleWho()">Who made this? ↑</button>
+  </div>
+  <div class="who-panel" id="whoPanel">
+    <p class="who-text">Burnmeetr is built and maintained by AEDO, a multidisciplinary design studio based in Yamanakako, Japan. It exists because every meeting has a price, and most organisations prefer not to know what it is.</p>
+    <a class="who-link" href="https://aedo.jp" target="_blank" rel="noopener">aedo.jp →</a>
+  </div>
+</div>
+
+<canvas id="staticCanvas" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;z-index:199;pointer-events:none;"></canvas>
+<canvas id="gameCanvas"></canvas>
+<div id="gameUI">
+  <div class="game-bar">
+    <span id="gameTitle">BURN://RUNNER</span>
+    <span id="gameLives">● ● ●</span>
+    <span id="gameScore">$0</span>
+  </div>
+  <div class="game-legend" id="gameLegend">
+    <span class="legend-item"><canvas class="legend-icon" id="lcal" width="40" height="36"></canvas><span id="lcalText">Meetings avoided ×0</span></span>
+    <span class="legend-item"><canvas class="legend-icon" id="lcrt" width="52" height="36"></canvas><span id="lcrtText">Work delegated ×0</span></span>
+    <span class="legend-item"><canvas class="legend-icon" id="lbeer" width="40" height="36"></canvas><span id="lbeerText">After-work drinks expensed ×0</span></span>
+    <span class="legend-item"><canvas class="legend-icon" id="lcash" width="40" height="36"></canvas><span id="lcashText">Annual bonuses collected ×0</span></span>
+  </div>
+</div>
+<div class="game-border-left" id="borderL"></div>
+<div class="game-border-right" id="borderR"></div>
+<div class="game-border-bottom" id="borderB"></div>
+<div id="gameOver">
+  <div id="gameOverText">The host has ended the meeting.</div>
+  <div id="gameOverScore"></div>
+</div>
+<div id="gameSummary">
+  <div class="summary-title">Session Report</div>
+  <div class="summary-row" id="srow0"><span class="summary-row-label">Meetings avoided</span><span class="summary-row-value" id="sval0">×0</span></div>
+  <div class="summary-row" id="srow1"><span class="summary-row-label">Work delegated</span><span class="summary-row-value" id="sval1">×0</span></div>
+  <div class="summary-row" id="srow2"><span class="summary-row-label">After-work drinks expensed</span><span class="summary-row-value" id="sval2">×0</span></div>
+  <div class="summary-row" id="srow3"><span class="summary-row-label">Annual bonuses collected</span><span class="summary-row-value" id="sval3">×0</span></div>
+  <div class="summary-score" id="summaryScore">$0</div>
+  <div class="summary-score-label" id="summaryScoreLabel">TOTAL SURVIVED</div>
+</div>
+<div id="bonusFlash">+1 BONUS</div>
+
+<script>
+// ── Who panel ────────────────────────────────────────────────────────────────
+function toggleWho(){
+  var p=document.getElementById('whoPanel'),b=document.getElementById('whoBtn');
+  var open=p.classList.toggle('open');
+  b.textContent=open?'Who made this? ↓':'Who made this? ↑';
+  if(open) setTimeout(function(){p.scrollIntoView({behavior:'smooth',block:'nearest'});},50);
+}
+
+// ── Ticker ────────────────────────────────────────────────────────────────────
+var tickerBase=847.3,postCrashOffset=0,sessionHigh=847.3,sessionLow=847.3;
+function updateTicker(){
+  tickerBase+=(Math.random()-0.502)*0.5;
+  tickerBase=Math.max(600,Math.min(1100,tickerBase));
+  var val=tickerBase+postCrashOffset;
+  sessionHigh=Math.max(sessionHigh,val); sessionLow=Math.min(sessionLow,val);
+  var display=val.toFixed(1),ch=((Math.random()-0.52)*3).toFixed(1),up=parseFloat(ch)>=0;
+  document.getElementById('tickerValue').textContent=display;
+  var tc=document.getElementById('tickerChange');
+  tc.textContent=(up?'▲':'▼')+Math.abs(parseFloat(ch))+'%';
+  tc.style.color=up?'#00CC99':'#CC2200';
+  var iv=document.getElementById('infoValue');
+  if(iv){iv.textContent=display;iv.style.color=up?'#00AA88':'#CC2200';}
+  var ih=document.getElementById('infoHigh');if(ih)ih.textContent=sessionHigh.toFixed(1);
+  var il=document.getElementById('infoLow');if(il)il.textContent=sessionLow.toFixed(1);
+}
+setInterval(updateTicker,2000);
+
+// ── Market graph ──────────────────────────────────────────────────────────────
+var mc=document.getElementById('marketCanvas'),mCtx=mc.getContext('2d');
+var mPts=[],mOffset=0,mSpeed=0.7,isFlat=false,flatProg=0,mAF=null,mDpr=1;
+var AXIS_X=42;
+
+function setupMC(){
+  mDpr=window.devicePixelRatio||1;
+  mc.width=mc.offsetWidth*mDpr; mc.height=mc.offsetHeight*mDpr;
+  mCtx.setTransform(mDpr,0,0,mDpr,0,0); initMPts();
+}
+function initMPts(){
+  var w=mc.offsetWidth,h=mc.offsetHeight; mPts=[];
+  // Start at ~$847 on new scale (upper third)
+  var x=0,y=h*0.22;
+  while(x<w+600){
+    var fl=50+Math.random()*90; mPts.push({x:x,y:y}); x+=fl; mPts.push({x:x,y:y});
+    var sl=25+Math.random()*45,mv=(Math.random()-0.48)*h*0.18;
+    y=Math.max(h*0.07,Math.min(h*0.85,y+mv)); x+=sl; mPts.push({x:x,y:y});
+  }
+}
+function extendMPts(){
+  var w=mc.offsetWidth,h=mc.offsetHeight,s=0;
+  while(mPts[mPts.length-1].x-mOffset<w+600&&s<80){
+    s++; var last=mPts[mPts.length-1],x=last.x,y=last.y;
+    var fl=50+Math.random()*90; x+=fl; mPts.push({x:x,y:y});
+    var sl=25+Math.random()*45,mv=(Math.random()-0.48)*h*0.18;
+    y=Math.max(h*0.07,Math.min(h*0.85,y+mv)); x+=sl; mPts.push({x:x,y:y});
+  }
+  while(mPts.length>4&&mPts[0].x-mOffset<-200) mPts.shift();
+}
+
+function drawMarket(){
+  var w=mc.offsetWidth,h=mc.offsetHeight;
+  mCtx.clearRect(0,0,w,h);
+  if(!isFlat){mOffset+=mSpeed;extendMPts();}
+
+  // Grid + labels — values match ticker range (200-1000)
+  var mGridVals=[1000,800,600,400,200];
+  mCtx.font='10px "Courier New"'; mCtx.textAlign='right';
+  for(var gi=0;gi<5;gi++){
+    var gy=h*(0.06+gi*0.21);
+    mCtx.beginPath(); mCtx.strokeStyle='rgba(255,255,255,0.08)';
+    mCtx.lineWidth=1; mCtx.setLineDash([3,7]);
+    mCtx.moveTo(AXIS_X+2,gy); mCtx.lineTo(w,gy); mCtx.stroke();
+    mCtx.setLineDash([]);
+    mCtx.fillStyle='rgba(240,240,240,0.38)';
+    mCtx.fillText('$'+mGridVals[gi],AXIS_X-2,gy+3);
+  }
+  mCtx.beginPath(); mCtx.strokeStyle='rgba(255,255,255,0.16)';
+  mCtx.lineWidth=1; mCtx.moveTo(AXIS_X,0); mCtx.lineTo(AXIS_X,h); mCtx.stroke();
+
+  // Strict clip — both left AND right edges
+  mCtx.save();
+  mCtx.beginPath(); mCtx.rect(AXIS_X,0,w-AXIS_X,h); mCtx.clip();
+
+  // Ground gradient fill — draw through all points without breaking early
+  if(mPts.length>1){
+    var grad=mCtx.createLinearGradient(0,0,0,h);
+    grad.addColorStop(0,'rgba(0,170,136,0.18)'); grad.addColorStop(1,'rgba(0,170,136,0.0)');
+    // Ground fill — no clamping, clip rect handles both edges
+    mCtx.beginPath();
+    var fs=false;
+    for(var fi=0;fi<mPts.length;fi++){
+      var fpx=mPts[fi].x-mOffset+AXIS_X;
+      if(!fs){mCtx.moveTo(fpx,mPts[fi].y);fs=true;}
+      else mCtx.lineTo(fpx,mPts[fi].y);
+    }
+    var lastPt=mPts[mPts.length-1];
+    mCtx.lineTo(lastPt.x-mOffset+AXIS_X,h);
+    mCtx.lineTo(mPts[0].x-mOffset+AXIS_X,h);
+    mCtx.closePath();
+    mCtx.fillStyle=grad; mCtx.fill();
+  }
+
+  // Market line — no clamping, clip rect handles both edges cleanly
+  mCtx.beginPath();
+  mCtx.strokeStyle=isFlat?'rgba(0,170,136,'+Math.max(0.05,1-flatProg*2.2)+')':'#00AA88';
+  mCtx.lineWidth=2;
+  var started=false;
+  for(var pi=0;pi<mPts.length;pi++){
+    var px=mPts[pi].x-mOffset+AXIS_X;
+    if(!started){mCtx.moveTo(px,mPts[pi].y);started=true;}
+    else mCtx.lineTo(px,mPts[pi].y);
+  }
+  mCtx.stroke();
+
+  // Flatline overlay
+  if(isFlat){
+    flatProg=Math.min(1,flatProg+0.016);
+    if(flatProg>0.08){
+      var midY=h*0.5;
+      mCtx.beginPath();
+      mCtx.strokeStyle='rgba(204,34,0,'+Math.min(1,flatProg*1.2)+')';
+      mCtx.lineWidth=2;
+      mCtx.moveTo(AXIS_X,midY); mCtx.lineTo(AXIS_X+(w-AXIS_X)*flatProg,midY); mCtx.stroke();
+    }
+  }
+  mCtx.restore();
+  mAF=requestAnimationFrame(drawMarket);
+}
+window.addEventListener('resize',function(){if(mAF)cancelAnimationFrame(mAF);setupMC();drawMarket();});
+setupMC(); drawMarket();
+
+// ── Synergy ───────────────────────────────────────────────────────────────────
+var swEl=document.getElementById('synergyWord'),synTaps=0,synCool=false;
+function handleSyn(){
+  if(synCool)return; synTaps++;
+  swEl.style.opacity=Math.max(0,1-synTaps*0.2).toString();
+  // Count down the synergy stat
+  var remaining=Math.max(0,5-synTaps);
+  var sc=document.getElementById('synergyCount');
+  if(sc) sc.textContent=(remaining>0?remaining+'×':'0×');
+  var h=mc.offsetHeight;
+  for(var i=Math.max(0,mPts.length-4);i<mPts.length;i++) mPts[i].y=Math.min(h*0.88,mPts[i].y+18);
+  if(synTaps>=5){
+    synCool=true; isFlat=true; flatProg=0;
+    document.getElementById('graphMeta').textContent='MEET:AX 0.00 ▼100%';
+    document.getElementById('graphMeta').style.color='#CC2200';
+    var iv=document.getElementById('infoValue');
+    if(iv){iv.textContent='0.0';iv.style.color='#CC2200';}
+    // Static burst then start game
+    setTimeout(function(){
+      staticBurst(startGame);
+    },1800);
+  }
+}
+swEl.addEventListener('click',handleSyn);
+swEl.addEventListener('touchend',function(e){e.preventDefault();handleSyn();});
+
+// ── Pixel art drawers ─────────────────────────────────────────────────────────
+function drawCalendar(ctx,x,y,s){
+  ctx.fillStyle='#E8E8E8'; ctx.fillRect(x,y+s*2,s*14,s*12);
+  ctx.fillStyle='#CC2200'; ctx.fillRect(x,y,s*14,s*4);
+  ctx.fillStyle='#222';
+  for(var i=0;i<5;i++) ctx.fillRect(x+s*(2+i*2.5),y-s,s,s*2);
+  ctx.fillStyle='rgba(0,0,0,0.15)';
+  ctx.fillRect(x+s*4,y+s*4,s,s*10); ctx.fillRect(x+s*8,y+s*4,s,s*10);
+  ctx.fillRect(x+s*1,y+s*7,s*12,s);
+  ctx.fillStyle='#111'; ctx.font='bold '+(s*5)+'px "Courier New"'; ctx.textAlign='center';
+  ctx.fillText('29',x+s*7,y+s*12);
+}
+function drawCRT(ctx,x,y,s){
+  ctx.fillStyle='#C8C0A8'; ctx.fillRect(x,y,s*18,s*14);
+  ctx.fillStyle='#9A9282'; ctx.fillRect(x+s,y+s,s*16,s*11);
+  ctx.fillStyle='#001A14'; ctx.fillRect(x+s*2,y+s*2,s*14,s*9);
+  ctx.fillStyle='#00AA88';
+  ctx.fillRect(x+s*4,y+s*7,s*2,s*3);
+  ctx.fillRect(x+s*7,y+s*5,s*2,s*5);
+  ctx.fillRect(x+s*10,y+s*6,s*2,s*4);
+  ctx.fillStyle='rgba(0,0,0,0.20)';
+  for(var si=0;si<5;si++) ctx.fillRect(x+s*2,y+s*2+si*s*1.8,s*14,Math.max(1,s*0.4));
+  ctx.fillStyle='#9A9282'; ctx.fillRect(x+s*7,y+s*14,s*4,s*2); ctx.fillRect(x+s*5,y+s*16,s*8,s*2);
+  ctx.fillStyle='#CC2200'; ctx.fillRect(x+s*15,y+s*12,s*2,s);
+}
+function drawBeer(ctx,x,y,s){
+  ctx.fillStyle='#C87000'; ctx.fillRect(x,y+s*2,s*12,s*14);
+  ctx.fillStyle='#E8A020'; ctx.fillRect(x+s,y+s*4,s*10,s*11);
+  ctx.fillStyle='#F0F0F0';
+  ctx.fillRect(x+s,y+s*2,s*10,s*3); ctx.fillRect(x,y+s,s*3,s*2);
+  ctx.fillRect(x+s*4,y,s*3,s*2); ctx.fillRect(x+s*8,y+s,s*3,s*2);
+  ctx.fillStyle='#C87000';
+  ctx.fillRect(x+s*12,y+s*4,s*3,s*2); ctx.fillRect(x+s*12,y+s*10,s*3,s*2); ctx.fillRect(x+s*13,y+s*6,s*2,s*4);
+  ctx.fillStyle='#7A4400'; ctx.fillRect(x,y+s*2,s*12,s); ctx.fillRect(x,y+s*15,s*12,s);
+}
+function drawCash(ctx,x,y,s){
+  ctx.fillStyle='#1A5A1A'; ctx.fillRect(x+s,y+s*2,s*14,s*10);
+  ctx.fillStyle='#2A7A2A'; ctx.fillRect(x,y,s*14,s*10);
+  ctx.fillStyle='#3A9A3A'; ctx.fillRect(x+s,y+s,s*12,s*7);
+  ctx.fillStyle='#CC2200'; ctx.fillRect(x+s*5,y,s*4,s*10);
+  ctx.fillStyle='#F0F0F0'; ctx.font='bold '+(s*5)+'px "Courier New"'; ctx.textAlign='center';
+  ctx.fillText('$',x+s*7,y+s*7);
+  ctx.fillStyle='#0A3A0A'; ctx.fillRect(x+s,y+s*10,s*14,s); ctx.fillRect(x+s*2,y+s*11,s*14,s);
+}
+
+function drawLegendIcons(){
+  var pairs=[['lcal',40,36,drawCalendar,1.6],['lcrt',52,36,drawCRT,1.5],['lbeer',40,36,drawBeer,1.6],['lcash',40,36,drawCash,1.6]];
+  pairs.forEach(function(p){
+    var el=document.getElementById(p[0]); if(!el)return;
+    var ctx=el.getContext('2d'); ctx.clearRect(0,0,p[1],p[2]);
+    p[3](ctx,2,4,p[4]);
+  });
+}
+drawLegendIcons();
+
+// ── Game ──────────────────────────────────────────────────────────────────────
+var gameCanvas=document.getElementById('gameCanvas'),gCtx=gameCanvas.getContext('2d');
+var gameUI=document.getElementById('gameUI'),gameOverEl=document.getElementById('gameOver');
+
+// Game constants
+var BORDER=18, BAR_H=90; // measured from top: game-bar(~44) + legend(~46)
+var G_AXIS_OFFSET=48; // extra left offset for Y-axis labels
+var SW=10,SH=20,SX=120; // Salaryman size — bigger, starts right of axis
+var ICON_SCALE=3.5, ICON_H=Math.round(18*3.5); // ~63px tall obstacles
+
+// Game state
+var gameState='idle', invincible=false;
+var salY=0,salVY=0,onGround=false,coyote=0;
+var gLives=3,gScore=0,gSpeed=3.2,gFrame=0;
+var trail=[],terrain=[],tOffset=0;
+var obstacles=[],pickups=[],nextObs=240,nextPickup=900;
+var gAF=null,gDpr=1;
+var kills={calendar:0,crt:0,beer:0,cash:0};
+// Game market ticker state
+var gameTickerVal=847.3, gameTickerChg=2.1, gameTickerUp=true, gameTickerInterval=null;
+
+var OBS_TYPES=[
+  {type:'calendar'},{type:'calendar'},
+  {type:'crt'},{type:'beer'}
+];
+var OBS_WIDTHS={calendar:Math.round(15*3.5),crt:Math.round(18*3.5),beer:Math.round(12*3.5)};
+
+function showGame(){
+  gameCanvas.style.display='block'; gameUI.style.display='flex';
+  document.getElementById('borderL').style.display='block';
+  document.getElementById('borderR').style.display='block';
+  document.getElementById('borderB').style.display='block';
+}
+function hideGame(){
+  gameCanvas.style.display='none'; gameUI.style.display='none';
+  document.getElementById('borderL').style.display='none';
+  document.getElementById('borderR').style.display='none';
+  document.getElementById('borderB').style.display='none';
+}
+
+function startGame(){
+  if(mAF)cancelAnimationFrame(mAF);
+  gDpr=window.devicePixelRatio||1;
+  gameCanvas.width=window.innerWidth*gDpr; gameCanvas.height=window.innerHeight*gDpr;
+  gCtx.setTransform(gDpr,0,0,gDpr,0,0);
+  showGame(); gameOverEl.style.display='none';
+  gameState='playing'; invincible=false;
+  gLives=3; gScore=0; gSpeed=3.2; gFrame=0;
+  kills={calendar:0,crt:0,beer:0,cash:0};
+  // Start game ticker
+  gameTickerVal=847.3; gameTickerChg=2.1; gameTickerUp=true;
+  if(gameTickerInterval) clearInterval(gameTickerInterval);
+  gameTickerInterval=setInterval(function(){
+    // Drift based on survival — lives lost = market down
+    var bias=gLives>=3?0.55:(gLives===2?0.50:0.44);
+    gameTickerVal+=(Math.random()-bias)*3.5;
+    gameTickerVal=Math.max(500,Math.min(1100,gameTickerVal));
+    gameTickerChg=parseFloat(Math.abs((Math.random()-0.48)*4).toFixed(1));
+    gameTickerUp=(Math.random()<bias);
+    if(!gameTickerUp) gameTickerVal-=parseFloat(gameTickerChg)*0.5;
+  },1800);
+  trail=[]; obstacles=[]; pickups=[]; nextObs=240; nextPickup=900; tOffset=0; coyote=0;
+  initTerrain();
+  salY=getGY(SX+SW/2)-SH; salVY=0; onGround=true;
+  updateUI(); updateLegend();
+  window.addEventListener('keydown',onKey);
+  gameCanvas.addEventListener('touchstart',onTouch,{passive:false});
+  gameCanvas.addEventListener('click',onJump);
+  gAF=requestAnimationFrame(gameLoop);
+}
+
+function initTerrain(){
+  var w=window.innerWidth,h=window.innerHeight;
+  terrain=[];
+  // Generate terrain as world-coordinate points starting at worldX=0
+  // tOffset tracks how far we've scrolled in world space
+  var worldX=0, y=h*0.65;
+  // Long flat start
+  terrain.push({x:0,y:y});
+  terrain.push({x:400,y:y});
+  worldX=400;
+  // Generate well ahead
+  while(worldX<w*3){
+    var fl=100+Math.random()*140;
+    terrain.push({x:worldX,y:y});
+    worldX+=fl;
+    terrain.push({x:worldX,y:y});
+    var sl=50+Math.random()*70;
+    var dy=(Math.random()-0.44)*h*0.14;
+    y=Math.max(h*0.32,Math.min(h*0.76,y+dy));
+    worldX+=sl;
+    terrain.push({x:worldX,y:y});
+  }
+}
+function extendTerrain(){
+  var w=window.innerWidth,h=window.innerHeight;
+  if(!terrain||terrain.length===0) return;
+  var s=0;
+  // Keep terrain generated 3 screens ahead in world space
+  while(terrain[terrain.length-1].x-tOffset<w*3&&s<200){
+    s++;
+    var last=terrain[terrain.length-1],x=last.x,y=last.y;
+    var fl=100+Math.random()*140; x+=fl; terrain.push({x:x,y:y});
+    var sl=50+Math.random()*70,dy=(Math.random()-0.44)*h*0.14;
+    y=Math.max(h*0.32,Math.min(h*0.76,y+dy)); x+=sl; terrain.push({x:x,y:y});
+  }
+  // Only prune points 2 full screens behind — very conservative
+  while(terrain.length>40&&terrain[0].x<tOffset-w*2){
+    terrain.shift();
+  }
+}
+
+// Ground check using centre of salaryman foot
+function getGY(sx){
+  var wx=sx+tOffset;
+  var h=window.innerHeight;
+  if(!terrain||terrain.length<2) return h*0.65;
+  // Handle out-of-range
+  if(wx<=terrain[0].x) return terrain[0].y;
+  if(wx>=terrain[terrain.length-1].x) return terrain[terrain.length-1].y;
+  // Binary search for the segment
+  var lo=0,hi=terrain.length-2;
+  while(lo<=hi){
+    var mid=Math.floor((lo+hi)/2);
+    if(terrain[mid].x<=wx&&terrain[mid+1].x>=wx){
+      var a=terrain[mid],b=terrain[mid+1];
+      if(b.x===a.x) return a.y;
+      var t=(wx-a.x)/(b.x-a.x);
+      var y=a.y+(b.y-a.y)*t;
+      return isNaN(y)?h*0.65:y;
+    }
+    if(terrain[mid+1].x<wx) lo=mid+1;
+    else hi=mid-1;
+  }
+  return h*0.65;
+}
+
+function gameLoop(){
+  // Single guard — only one path through per frame
+  if(gameState!=='playing') return;
+  var w=window.innerWidth,h=window.innerHeight;
+  try {
+  gFrame++; gScore+=Math.floor(gSpeed);
+  if(gFrame%280===0) gSpeed=Math.min(14,gSpeed+0.5);
+  tOffset+=gSpeed; extendTerrain();
+
+  // Ground check at foot centre
+  var footX=SX+SW/2;
+  var gy=getGY(footX);
+  if(!gy||isNaN(gy)) gy=h*0.65;
+
+  // Coyote: 12 frames grace
+  if(onGround){coyote=12;}else if(coyote>0){coyote--;}
+
+  // Physics
+  if(!onGround){salVY+=0.50; salY+=salVY;}
+  if(isNaN(salY)||salY<-500) salY=gy-SH; // hard reset if NaN or flew way off top
+  if(salY+SH>=gy){salY=gy-SH; salVY=0; onGround=true;}
+  else{onGround=false;}
+
+  // Fell off bottom
+  if(salY>h+80){
+    gameState='idle'; // set BEFORE loseLife to prevent re-entry
+    loseLife(); return;
+  }
+
+  // Trail — horizontal dots at ground level
+  var trailGY=getGY(footX)-SH*0.1;
+  trail.push({x:SX,y:trailGY});
+  if(trail.length>60)trail.shift();
+
+  // Spawn obstacles
+  nextObs--;
+  if(nextObs<=0){
+    var ot=OBS_TYPES[Math.floor(Math.random()*OBS_TYPES.length)];
+    var ox=w-BORDER+80,oGY=getGY(ox-tOffset+tOffset);
+    var ow=OBS_WIDTHS[ot.type]||50;
+    obstacles.push({type:ot.type,x:ox,groundY:oGY,w:ow,h:ICON_H,jumped:false});
+    // Pair at higher speeds
+    if(Math.random()<(gSpeed-3.2)/13){
+      var gap=ow+16+Math.random()*24;
+      var ot2=OBS_TYPES[Math.floor(Math.random()*OBS_TYPES.length)];
+      var ow2=OBS_WIDTHS[ot2.type]||50;
+      obstacles.push({type:ot2.type,x:ox+gap,groundY:oGY,w:ow2,h:ICON_H,jumped:false});
+    }
+    nextObs=Math.max(50,220-gSpeed*11);
+  }
+
+  // Spawn cash pickup when lives < 3
+  nextPickup--;
+  if(nextPickup<=0&&gLives<3){
+    var px=w-BORDER+80,pGY=getGY(px-tOffset+tOffset);
+    pickups.push({x:px,groundY:pGY,w:Math.round(14*3.5),h:Math.round(10*3.5),collected:false});
+    nextPickup=900+Math.random()*500;
+  }
+
+  // Move obstacles, track jumps
+  for(var oi=0;oi<obstacles.length;oi++){
+    obstacles[oi].x-=gSpeed;
+    if(!obstacles[oi].jumped&&obstacles[oi].x+obstacles[oi].w<SX){
+      obstacles[oi].jumped=true;
+      kills[obstacles[oi].type]=(kills[obstacles[oi].type]||0)+1;
+      updateLegend();
+    }
+  }
+  obstacles=obstacles.filter(function(o){return o.x+o.w>BORDER-100;});
+
+  // Move pickups, check collection
+  for(var pi=0;pi<pickups.length;pi++){
+    pickups[pi].x-=gSpeed;
+    if(!pickups[pi].collected&&
+       SX+SW>pickups[pi].x+4&&SX<pickups[pi].x+pickups[pi].w-4&&
+       salY+SH>pickups[pi].groundY-pickups[pi].h-4&&salY<pickups[pi].groundY){
+      pickups[pi].collected=true;
+      gLives=Math.min(3,gLives+1);
+      kills.cash=(kills.cash||0)+1;
+      updateUI(); updateLegend(); showBonusFlash();
+    }
+  }
+  pickups=pickups.filter(function(p){return !p.collected&&p.x+p.w>BORDER-100;});
+
+  // Collision — skip if invincible or not playing
+  if(!invincible&&gameState==='playing'){
+    for(var ci=0;ci<obstacles.length;ci++){
+      var ob=obstacles[ci];
+      var oTop=ob.groundY-ob.h;
+      if(SX+SW>ob.x+5&&SX<ob.x+ob.w-5&&salY+SH>oTop+8&&salY<ob.groundY){
+        loseLife(); return;
+      }
+    }
+  }
+
+  // Draw
+  gCtx.clearRect(0,0,w,h);
+  gCtx.save();
+  gCtx.beginPath(); gCtx.rect(BORDER,BAR_H,w-BORDER*2,h-BAR_H-BORDER); gCtx.clip();
+
+  // Terrain gradient fill
+  if(terrain.length>1){
+    var tgrad=gCtx.createLinearGradient(0,h*0.3,0,h);
+    tgrad.addColorStop(0,'rgba(0,170,136,0.16)'); tgrad.addColorStop(1,'rgba(0,170,136,0.0)');
+    // No clamping — clip rect handles both edges
+    gCtx.beginPath(); var ts=false;
+    for(var ti=0;ti<terrain.length;ti++){
+      var tx=terrain[ti].x-tOffset+BORDER;
+      if(!ts){gCtx.moveTo(tx,terrain[ti].y);ts=true;}
+      else gCtx.lineTo(tx,terrain[ti].y);
+    }
+    var lastT=terrain[terrain.length-1];
+    gCtx.lineTo(lastT.x-tOffset+BORDER,h);
+    gCtx.lineTo(terrain[0].x-tOffset+BORDER,h);
+    gCtx.closePath();
+    gCtx.fillStyle=tgrad; gCtx.fill();
+  }
+
+  // Terrain line — no clamping, clip rect handles both edges
+  gCtx.beginPath(); gCtx.strokeStyle='#00AA88'; gCtx.lineWidth=2.5;
+  ts=false;
+  for(var tl=0;tl<terrain.length;tl++){
+    var tlx=terrain[tl].x-tOffset+BORDER;
+    if(!ts){gCtx.moveTo(tlx,terrain[tl].y);ts=true;}
+    else gCtx.lineTo(tlx,terrain[tl].y);
+  }
+  gCtx.stroke();
+
+  // Y-axis and horizontal grid lines — fixed, terrain scrolls past them
+  var G_AXIS=BORDER+44; // left edge of axis labels
+  var gGridVals=[1000,800,600,400,200];
+  var playH2=h-BAR_H-BORDER;
+  gCtx.font='10px "Courier New"'; gCtx.textAlign='right';
+  for(var ggi=0;ggi<5;ggi++){
+    var ggy=BAR_H+playH2*(0.06+ggi*0.21);
+    // Horizontal grid line
+    gCtx.beginPath();
+    gCtx.strokeStyle='rgba(0,170,136,0.10)';
+    gCtx.lineWidth=1; gCtx.setLineDash([4,8]);
+    gCtx.moveTo(G_AXIS+2,ggy); gCtx.lineTo(w-BORDER,ggy);
+    gCtx.stroke(); gCtx.setLineDash([]);
+    // Y-axis label
+    gCtx.fillStyle='rgba(0,170,136,0.55)';
+    gCtx.fillText('$'+gGridVals[ggi], G_AXIS-2, ggy+3);
+  }
+  // Vertical axis rule
+  gCtx.beginPath();
+  gCtx.strokeStyle='rgba(0,170,136,0.20)';
+  gCtx.lineWidth=1;
+  gCtx.moveTo(G_AXIS, BAR_H); gCtx.lineTo(G_AXIS, h-BORDER);
+  gCtx.stroke();
+
+  // Running MEET:AX ticker inside play area
+  var mxVal=(gameTickerVal||847.3).toFixed(1);
+  var mxChg=parseFloat(gameTickerChg||2.1).toFixed(1);
+  var mxUp=(gameTickerUp!==false);
+  gCtx.font='bold 12px "Courier New"'; gCtx.textAlign='left';
+  gCtx.fillStyle='rgba(0,170,136,0.70)';
+  gCtx.fillText('MEET:AX', G_AXIS+8, BAR_H+20);
+  gCtx.fillStyle='rgba(240,240,240,0.80)';
+  gCtx.fillText(mxVal, G_AXIS+82, BAR_H+20);
+  gCtx.fillStyle=mxUp?'rgba(0,170,136,0.80)':'rgba(204,34,0,0.80)';
+  gCtx.fillText((mxUp?'▲':'▼')+parseFloat(mxChg).toFixed(1)+'%', G_AXIS+140, BAR_H+20);
+
+  // Trail — horizontal dots at ground level
+  for(var tri=0;tri<trail.length;tri++){
+    var talpha=(tri/trail.length)*0.28;
+    var tw=Math.max(2,(tri/trail.length)*6);
+    // Position: spaced to the left of current salaryman X
+    var trx=SX-(trail.length-tri-1)*(gSpeed*0.9);
+    if(trx<BORDER)continue;
+    gCtx.fillStyle='rgba(0,170,136,'+talpha+')';
+    gCtx.fillRect(trx,trail[tri].y,tw,2);
+  }
+
+  // Cash pickups
+  for(var pdi=0;pdi<pickups.length;pdi++){
+    var pk=pickups[pdi];
+    gCtx.save(); gCtx.translate(pk.x,pk.groundY-pk.h);
+    drawCash(gCtx,0,0,ICON_SCALE*0.9); gCtx.restore();
+  }
+
+  // Obstacles
+  for(var odi=0;odi<obstacles.length;odi++){
+    var obs=obstacles[odi];
+    gCtx.save(); gCtx.translate(obs.x,obs.groundY-obs.h);
+    if(obs.type==='calendar') drawCalendar(gCtx,0,0,ICON_SCALE);
+    else if(obs.type==='crt') drawCRT(gCtx,0,0,ICON_SCALE);
+    else if(obs.type==='beer') drawBeer(gCtx,0,0,ICON_SCALE);
+    gCtx.restore();
+  }
+
+  // Salaryman — flicker if invincible
+  if(!invincible||(gFrame%6<3)){
+    gCtx.fillStyle='#F0F0F0'; gCtx.fillRect(SX,salY,SW,SH);
+    gCtx.fillStyle='#CC2200'; gCtx.fillRect(SX+SW-2,salY+5,2,2);
+  }
+
+  gCtx.restore();
+  updateUI();
+  gAF=requestAnimationFrame(gameLoop);
+  } catch(err) {
+    console.error('GAMELOOP ERROR:', err.message, err.stack);
+    // Don't freeze — just skip this frame
+    gAF=requestAnimationFrame(gameLoop);
+  }
+}
+
+function showBonusFlash(){
+  var el=document.getElementById('bonusFlash');
+  el.style.display='block';
+  el.style.left=(SX+BORDER+16)+'px';
+  el.style.top=Math.max(BAR_H+20,salY-10)+'px';
+  el.style.opacity='1';
+  var op=1;
+  var t=setInterval(function(){
+    op-=0.04; el.style.opacity=op;
+    el.style.top=(parseInt(el.style.top)-1.5)+'px';
+    if(op<=0){clearInterval(t);el.style.display='none';}
+  },25);
+}
+
+function updateLegend(){
+  document.getElementById('lcalText').textContent='Meetings avoided \xd7'+(kills.calendar||0);
+  document.getElementById('lcrtText').textContent='Work delegated \xd7'+(kills.crt||0);
+  document.getElementById('lbeerText').textContent='After-work drinks expensed \xd7'+(kills.beer||0);
+  document.getElementById('lcashText').textContent='Annual bonuses collected \xd7'+(kills.cash||0);
+}
+
+function jump(){if(coyote>0){salVY=-14;onGround=false;coyote=0;}}
+function onJump(){jump();}
+function onKey(e){if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();jump();}if(e.code==='Escape')endGame();}
+function onTouch(e){e.preventDefault();jump();}
+
+function loseLife(){
+  // Re-entry guard — only process if actually playing
+  if(gameState==='dead') return;
+  if(invincible) return;
+  // Set state immediately to prevent any further calls this frame
+  gameState='idle';
+  invincible=true;
+  gLives--;
+  if(gAF){cancelAnimationFrame(gAF); gAF=null;}
+  updateUI();
+  if(gLives<=0){
+    setTimeout(endGame, 50); // slight delay so state settles
+    return;
+  }
+  // Respawn
+  setTimeout(function(){
+    if(gameState==='dead') return; // endGame may have fired
+    var h=window.innerHeight;
+    var gy=getGY(SX+SW/2);
+    if(!gy||isNaN(gy)) gy=h*0.65;
+    salY=gy-SH; salVY=0; onGround=true; coyote=12; trail=[];
+    gameState='playing'; updateUI();
+    gAF=requestAnimationFrame(gameLoop);
+    // Clear invincible after 1.8s
+    setTimeout(function(){invincible=false;}, 1800);
+  }, 700);
+}
+
+function updateUI(){
+  document.getElementById('gameScore').textContent='$'+gScore.toLocaleString('en-US');
+  var d=''; for(var i=0;i<3;i++) d+=(i<gLives?'● ':'○ ');
+  document.getElementById('gameLives').textContent=d.trim();
+}
+
+function endGame(){
+  gameState='dead'; cancelAnimationFrame(gAF);
+  if(gameTickerInterval){clearInterval(gameTickerInterval);gameTickerInterval=null;}
+  window.removeEventListener('keydown',onKey);
+  gameCanvas.removeEventListener('touchstart',onTouch);
+  gameCanvas.removeEventListener('click',onJump);
+
+  // Show "The host has ended the meeting." for 2s then summary
+  gameOverEl.style.display='flex';
+  document.getElementById('gameOverScore').textContent='';
+  setTimeout(function(){
+    gameOverEl.style.display='none';
+    showGameSummary();
+  }, 2000);
+}
+
+function showGameSummary(){
+  var el=document.getElementById('gameSummary');
+  var rows=['srow0','srow1','srow2','srow3'];
+  var scoreDelay=rows.length*400+400;
+
+  // Populate values
+  document.getElementById('sval0').textContent='×'+(kills.calendar||0);
+  document.getElementById('sval1').textContent='×'+(kills.crt||0);
+  document.getElementById('sval2').textContent='×'+(kills.beer||0);
+  document.getElementById('sval3').textContent='×'+(kills.cash||0);
+  document.getElementById('summaryScore').textContent='$'+gScore.toLocaleString('en-US');
+
+  // Reset all to invisible, show container
+  rows.forEach(function(id){
+    var r=document.getElementById(id);
+    if(r){ r.style.transition='none'; r.style.opacity='0'; }
+  });
+  var sc=document.getElementById('summaryScore');
+  var sl=document.getElementById('summaryScoreLabel');
+  if(sc){ sc.style.transition='none'; sc.style.opacity='0'; }
+  if(sl){ sl.style.transition='none'; sl.style.opacity='0'; }
+
+  el.style.display='flex';
+
+  // Wait 100ms for browser to paint at opacity:0, then enable transitions
+  setTimeout(function(){
+    rows.forEach(function(id){
+      var r=document.getElementById(id);
+      if(r) r.style.transition='opacity 0.5s';
+    });
+    if(sc) sc.style.transition='opacity 0.6s';
+    if(sl) sl.style.transition='opacity 0.5s';
+
+    // Reveal each row
+    rows.forEach(function(id,i){
+      setTimeout(function(){
+        var r=document.getElementById(id);
+        if(r) r.style.opacity='1';
+      }, i*400);
+    });
+
+    // Reveal score
+    setTimeout(function(){
+      if(sc) sc.style.opacity='1';
+      if(sl) sl.style.opacity='1';
+    }, scoreDelay);
+
+    // Return to page
+    setTimeout(function(){
+      el.style.display='none';
+      returnToPage();
+    }, scoreDelay+3200);
+
+  }, 100);
+}
+
+function returnToPage(){
+  hideGame(); gameOverEl.style.display='none';
+  synTaps=0; synCool=false; swEl.style.opacity='1';
+  var sc=document.getElementById('synergyCount');
+  if(sc) sc.textContent='5×';
+  postCrashOffset=-(25+Math.random()*20);
+  isFlat=false; flatProg=0;
+  document.getElementById('graphMeta').textContent='LIVE';
+  document.getElementById('graphMeta').style.color='';
+  sessionHigh=tickerBase; sessionLow=tickerBase;
+  mPts=[]; mOffset=0; setupMC(); drawMarket();
+}
+
+// ── Synergy gauge on BM mark ─────────────────────────────────────────────
+var gaugeTaps=0, gaugeTimer=null, gaugeFull=false;
+var bmMark=document.querySelector('.bm-mark');
+var synergyGauge=document.getElementById('synergyGauge');
+var gaugeFill=document.getElementById('gaugeFill');
+var gaugePct=document.getElementById('gaugePct');
+var gaugeStatus=document.getElementById('gaugeStatus');
+
+var gaugeMessages=['—','Calibrating...','Synergy detected.','Levels rising.','Capacity approaching.','WARNING: MAXIMUM SYNERGY','WARNING: MAXIMUM SYNERGY','WARNING: MAXIMUM SYNERGY','WARNING: MAXIMUM SYNERGY','OVERLOAD IMMINENT','SYNERGY CAPACITY REACHED'];
+
+function updateGauge(taps){
+  var pct=Math.min(100,taps*10);
+  gaugeFill.style.width=pct+'%';
+  gaugePct.textContent=pct+'%';
+  gaugeStatus.textContent=gaugeMessages[Math.min(taps,10)];
+  // Colour gets more intense
+  var r=Math.min(255,180+taps*8);
+  gaugeFill.style.background='rgb('+r+','+Math.max(0,34-taps*3)+',0)';
+  gaugePct.style.color='rgb('+r+','+Math.max(0,34-taps*3)+',0)';
+}
+
+if(bmMark){
+  bmMark.addEventListener('click',function(){
+    if(gaugeFull)return;
+    gaugeTaps++;
+    synergyGauge.classList.add('active');
+    updateGauge(gaugeTaps);
+    if(gaugeTimer)clearTimeout(gaugeTimer);
+    if(gaugeTaps>=10){
+      gaugeFull=true;
+      // Flash the gauge red
+      gaugeFill.style.transition='none';
+      var flashes=0;
+      var flashInt=setInterval(function(){
+        gaugeFill.style.background=flashes%2===0?'#FF0000':'#CC2200';
+        if(++flashes>5){clearInterval(flashInt);}
+      },80);
+      // Flash ticker
+      var tv=document.getElementById('tickerValue');
+      var tc=document.getElementById('tickerChange');
+      var origVal=tv.textContent,origChg=tc.textContent,origCol=tc.style.color;
+      tv.textContent='SYNERGY CAPACITY REACHED. NO FURTHER ACTION REQUIRED.';
+      tv.style.color='#CC2200';
+      tv.style.letterSpacing='1px';
+      tc.textContent='';
+      setTimeout(function(){
+        tv.textContent=origVal;tv.style.color='';tv.style.letterSpacing='';
+        tc.textContent=origChg;tc.style.color=origCol;
+        // Drain and reset
+        gaugeFill.style.transition='width 0.8s ease-out';
+        gaugeFill.style.width='0%';
+        gaugePct.textContent='0%';
+        gaugeStatus.textContent='—';
+        setTimeout(function(){
+          synergyGauge.classList.remove('active');
+          gaugeTaps=0;gaugeFull=false;
+          gaugeFill.style.transition='';
+          gaugeFill.style.background='';
+          gaugePct.style.color='';
+        },900);
+      },3000);
+    } else {
+      // Decay after 1.4s of no tapping
+      gaugeTimer=setTimeout(function(){
+        gaugeTaps=Math.max(0,gaugeTaps-2);
+        updateGauge(gaugeTaps);
+        if(gaugeTaps===0)synergyGauge.classList.remove('active');
+      },1400);
+    }
+  });
+  bmMark.addEventListener('touchend',function(e){e.preventDefault();bmMark.click();});
+}
+
+// ── Static burst transition ────────────────────────────────────────────────
+function staticBurst(onComplete){
+  var sc=document.getElementById('staticCanvas');
+  var sCtx=sc.getContext('2d');
+  sc.width=window.innerWidth; sc.height=window.innerHeight;
+  sc.style.display='block';
+  var frames=0, maxFrames=14;
+  function drawStatic(){
+    var w=sc.width,h=sc.height;
+    var img=sCtx.createImageData(w,h);
+    var d=img.data;
+    for(var i=0;i<d.length;i+=4){
+      var v=Math.random()>0.5?255:0;
+      // Add some teal/red tones for burnmeetr feel
+      var r2=Math.random();
+      if(r2>0.96){d[i]=204;d[i+1]=34;d[i+2]=0;}       // red pixel
+      else if(r2>0.92){d[i]=0;d[i+1]=170;d[i+2]=136;}  // teal pixel
+      else{d[i]=v;d[i+1]=v;d[i+2]=v;}                   // white/black
+      d[i+3]=frames<3?200:Math.max(0,220-frames*18);     // fade out
+    }
+    sCtx.putImageData(img,0,0);
+    frames++;
+    if(frames<maxFrames){
+      requestAnimationFrame(drawStatic);
+    } else {
+      sc.style.display='none';
+      onComplete();
+    }
+  }
+  drawStatic();
+}
+</script>
+</body>
+</html>
